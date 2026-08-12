@@ -1,6 +1,6 @@
 # Fastfetch Windows Installer
 
-A small, interactive Windows installer for [Fastfetch](https://github.com/fastfetch-cli/fastfetch). It downloads the latest official 64-bit Windows release, installs it for all users, creates a **PC SPECS** desktop shortcut, and adds Fastfetch to the system PATH.
+A small, interactive Windows installer for [Fastfetch](https://github.com/fastfetch-cli/fastfetch), the original Fastfetch project. It downloads the latest official 64-bit Windows release, installs it for all users, creates a **PC SPECS** desktop shortcut, and adds Fastfetch to the system PATH.
 
 ## Install
 
@@ -35,7 +35,7 @@ See the [Fastfetch configuration documentation](https://github.com/fastfetch-cli
 
 ## Security and attribution
 
-This project downloads Fastfetch only from the official `fastfetch-cli/fastfetch` GitHub release endpoint over HTTPS. Fastfetch is a separate project; see its [license](https://github.com/fastfetch-cli/fastfetch/blob/dev/LICENSE) and releases for upstream details.
+This project downloads Fastfetch only from the official [Fastfetch GitHub page](https://github.com/fastfetch-cli/fastfetch) and its release endpoint over HTTPS. Fastfetch is a separate project; see its [license](https://github.com/fastfetch-cli/fastfetch/blob/dev/LICENSE) and releases for upstream details.
 
 ## License
 
