@@ -103,7 +103,7 @@ function Install-Fastfetch {
             $source = Join-Path $ScriptDir $assetName
             $destination = Join-Path $InstallDir $assetName
             if ($assetName -eq 'icon.ico' -and -not (Test-Path -LiteralPath $source)) { continue }
-            if (Test-Path -LiteralPath $destination -and $assetName -in 'config.jsonc', 'ascii.txt') {
+            if ((Test-Path -LiteralPath $destination) -and $assetName -in 'config.jsonc', 'ascii.txt') {
                 Write-OK "$assetName already exists; preserving your custom version."
             } else {
                 Copy-Item -LiteralPath $source -Destination $destination -Force
