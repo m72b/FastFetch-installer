@@ -1,0 +1,23 @@
+name: Validate release files
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate required files and PowerShell syntax
+        shell: powershell
+        run: |
+          $required = 'Install_Fastfetch.bat', 'fastfetch_setup.ps1', 'config.jsonc', 'ascii.txt', 'README.md', 'LICENSE'
+          $missing = $required | Where-Object { -not (Test-Path -LiteralPath $_) }
+          if ($missing) { throw "Missing required files: $($missing -join ', ')" }
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'fastfetch_setup.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors) { throw ($errors | Out-String) }
+          Get-Content -Raw -LiteralPath config.jsonc | ConvertFrom-Json | Out-Null

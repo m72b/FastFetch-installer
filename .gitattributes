@@ -1,2 +1,4 @@
-# Auto detect text files and perform LF normalization
 * text=auto
+*.ps1 text eol=crlf working-tree-encoding=UTF-8
+*.bat text eol=crlf working-tree-encoding=UTF-8
+*.jsonc text eol=lf working-tree-encoding=UTF-8

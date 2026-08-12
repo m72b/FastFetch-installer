@@ -1,0 +1,7 @@
+# Release packages and local editor files
+*.zip
+*.7z
+*.tmp
+.vscode/
+Thumbs.db
+Desktop.ini
