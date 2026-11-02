@@ -3,6 +3,10 @@
 param()
 
 $ErrorActionPreference = 'Stop'
+# The Windows PowerShell 5.1 progress bar slows Invoke-WebRequest downloads dramatically.
+$ProgressPreference = 'SilentlyContinue'
+$InstallerVersion = '1.1.0'
+$UserAgent = "Fastfetch-Windows-Installer/$InstallerVersion"
 $InstallDir = Join-Path $env:ProgramData 'fastfetch'
 $PublicShortcutPath = Join-Path $env:PUBLIC 'Desktop\PC SPECS.lnk'
 $ScriptDir = $PSScriptRoot
@@ -18,7 +22,7 @@ function Write-Banner {
     Clear-Host
     Write-Host ''
     Write-Host '  +----------------------------------------------+' -ForegroundColor Cyan
-    Write-Host '  |         FASTFETCH AUTO-INSTALLER             |' -ForegroundColor Cyan
+    Write-Host ("  |{0,-46}|" -f "      FASTFETCH AUTO-INSTALLER  v$InstallerVersion") -ForegroundColor Cyan
     Write-Host '  +----------------------------------------------+' -ForegroundColor Cyan
     Write-Host ''
 }
@@ -31,6 +35,20 @@ function Test-Administrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [Security.Principal.WindowsPrincipal]::new($identity)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Get-ReleaseArchitecture {
+    # PROCESSOR_ARCHITEW6432 is set when running as an emulated/32-bit process on a 64-bit OS.
+    $arch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
+    try { $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() } catch { }
+    if ($arch -match 'arm64') { return 'aarch64' }
+    return 'amd64'
+}
+
+function Get-InstalledVersion {
+    $exe = Join-Path $InstallDir 'fastfetch.exe'
+    if (-not (Test-Path -LiteralPath $exe)) { return $null }
+    try { return ((& $exe --version 2>$null) | Select-Object -First 1) } catch { return $null }
 }
 
 function Update-MachinePath([bool]$AddInstallDirectory) {
@@ -72,7 +90,9 @@ function Install-Fastfetch {
     foreach ($assetName in 'config.jsonc', 'ascii.txt') {
         if (-not (Test-Path -LiteralPath (Join-Path $ScriptDir $assetName))) { throw "$assetName is missing next to the installer." }
     }
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    # Add TLS 1.2 without disabling newer protocols the OS may already allow.
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $arch = Get-ReleaseArchitecture
     $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("fastfetch-installer-" + [Guid]::NewGuid())
     try {
         Write-Step "Creating install directory: $InstallDir"
@@ -80,16 +100,27 @@ function Install-Fastfetch {
         Write-OK 'Directory ready.'
 
         Write-Step 'Fetching the latest Fastfetch release...'
-        $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest' -Headers @{ 'User-Agent' = 'Fastfetch-Windows-Installer' }
-        $asset = @($release.assets | Where-Object { $_.name -match 'windows-amd64\.zip$' }) | Select-Object -First 1
-        if (-not $asset) { throw 'The latest Fastfetch release does not contain a Windows AMD64 ZIP asset.' }
-        Write-OK "Found Fastfetch $($release.tag_name)."
+        $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest' -Headers @{ 'User-Agent' = $UserAgent; 'Accept' = 'application/vnd.github+json' } -UseBasicParsing
+        $asset = @($release.assets | Where-Object { $_.name -eq "fastfetch-windows-$arch.zip" }) | Select-Object -First 1
+        if (-not $asset) { throw "The latest Fastfetch release does not contain a Windows $arch ZIP asset." }
+        $installed = Get-InstalledVersion
+        if ($installed) { Write-OK "Currently installed: $installed" }
+        Write-OK "Found Fastfetch $($release.tag_name) ($arch)."
 
         New-Item -ItemType Directory -Path $tempRoot | Out-Null
         $zipPath = Join-Path $tempRoot $asset.name
         Write-Step 'Downloading Fastfetch...'
-        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zipPath -Headers @{ 'User-Agent' = 'Fastfetch-Windows-Installer' }
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zipPath -Headers @{ 'User-Agent' = $UserAgent } -UseBasicParsing
         Write-OK 'Download complete.'
+
+        if ($asset.digest -match '^sha256:(?<hash>[0-9a-fA-F]{64})$') {
+            Write-Step 'Verifying SHA-256 checksum...'
+            $actual = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash
+            if (-not $actual.Equals($Matches.hash, [StringComparison]::OrdinalIgnoreCase)) { throw "Checksum mismatch for $($asset.name). Expected $($Matches.hash), got $actual." }
+            Write-OK 'Checksum verified.'
+        } else {
+            Write-Host '  [--] GitHub did not publish a checksum for this asset; skipping verification.' -ForegroundColor DarkYellow
+        }
 
         Write-Step 'Extracting fastfetch.exe...'
         $extractDir = Join-Path $tempRoot 'extract'
