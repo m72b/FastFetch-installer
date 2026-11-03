@@ -5,7 +5,7 @@ param()
 $ErrorActionPreference = 'Stop'
 # The Windows PowerShell 5.1 progress bar slows Invoke-WebRequest downloads dramatically.
 $ProgressPreference = 'SilentlyContinue'
-$InstallerVersion = '1.1.0'
+$InstallerVersion = '1.1.1'
 $UserAgent = "Fastfetch-Windows-Installer/$InstallerVersion"
 $InstallDir = Join-Path $env:ProgramData 'fastfetch'
 $PublicShortcutPath = Join-Path $env:PUBLIC 'Desktop\PC SPECS.lnk'
