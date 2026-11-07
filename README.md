@@ -4,6 +4,7 @@
 
 # Fastfetch Windows Installer
 i used Claude to revive this project im not interested in it anymore
+
 **A one-click installer that sets up [Fastfetch](https://github.com/fastfetch-cli/fastfetch) on Windows — always using the latest official release.**
 
 [![Validate](https://github.com/m72b/FastFetch-installer/actions/workflows/validate.yml/badge.svg)](https://github.com/m72b/FastFetch-installer/actions/workflows/validate.yml)
