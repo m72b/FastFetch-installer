@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>FF</title>
+  <defs>
+    <linearGradient id="ff" gradientUnits="userSpaceOnUse" x1="31" y1="31" x2="225" y2="225">
+      <stop offset="0" stop-color="#86EFAC"/>
+      <stop offset="1" stop-color="#15803D"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#ff)" d="M24 38H62V218H24Z M62 38H124V69H62Z M62 110H114V141H62Z M132 38H170V218H132Z M170 38H232V69H170Z M170 110H222V141H170Z"/>
+</svg>

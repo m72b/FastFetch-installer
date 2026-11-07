@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/ff-icon.svg" alt="Fastfetch Windows Installer logo" width="128" height="128">
+
 # Fastfetch Windows Installer
 
 **A one-click installer that sets up [Fastfetch](https://github.com/fastfetch-cli/fastfetch) on Windows — always using the latest official release.**
